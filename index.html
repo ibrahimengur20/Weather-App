@@ -1,0 +1,176 @@
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Weather App</title>
+        <style>
+            html,body{
+                min-height: 100%;
+            }
+            
+            
+            body{
+                margin: 0;   
+                min-height: 100vh;
+               background-image: url(bulutresim.jpg); 
+               background-position: center;
+               background-size: cover;
+               background-repeat: no-repeat;
+                
+            }
+            h1{
+                text-align: center;
+            }
+            #weathernumber{
+                display: flex;
+                overflow-x: auto;
+                gap: 15px;
+                padding: 20px;
+            }
+            #weathernumber > div {
+                min-width: 120px;
+                padding: 20px;
+                border-radius: 15px;
+                background: #f2f2f2;
+                text-align: center;
+                    
+            }
+            .maindiv{
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 10px;
+                
+            }
+            button{
+                border-style: none;
+                background-color: rgba(173, 46, 148, 0.738);
+                width: 100px;
+                height: 30px;
+                color: white;
+            }
+            button:hover{
+                border-style: solid;
+                border-color: rgba(0, 0, 0, 0.434);
+            }
+            input{
+                border-style: none;
+                justify-content: center;
+                align-items: center;
+                height: 25px;
+            }
+        </style>
+    </head>
+    <body>
+        
+            <h1>Weather App</h1>
+            <div class="maindiv">
+
+            <label for="city">City:</label>
+
+            <input id="city" type="text">  
+
+            <button onclick="weather()">Search</button>
+
+            </div>
+            
+
+        <div>
+            <h1 id="h1" >Hourly Weather</h1>
+            <div id="weathernumber"></div>
+        </div>
+        
+        
+        <script>
+            document.addEventListener("keydown",e => {
+                if(e.key == "Enter"){
+                    weather();
+                }
+            })
+            async function weather() {
+            try{
+                let city = document.getElementById("city").value;
+
+                
+
+                let weatherone = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${city}&count=1&language=tr&format=json`);     
+                if (!weatherone.ok) {
+                        throw new Error("Weather data could not be fetched");
+                    }
+                let weatherforuse = await weatherone.json();
+
+                
+                
+                if (!weatherforuse.results || weatherforuse.results.length === 0) {
+                    throw new Error("City not found");
+                }
+                let latitude = `${weatherforuse.results[0].latitude}`
+                let longitude = `${weatherforuse.results[0].longitude}`
+
+                console.log(weatherforuse);
+                
+
+                let weatherResponse = await fetch( 
+                    `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&hourly=temperature_2m,relative_humidity_2m&timezone=auto`
+                );
+                
+                if (!weatherResponse.ok) {
+                    throw new Error("Weather data could not be fetched");
+                }
+
+                let weatherr = await weatherResponse.json();
+                
+                document.getElementById("h1").textContent = `${city} Hourly Weather`;
+
+                
+                
+   
+                let mainplace = document.getElementById("weathernumber");
+
+                
+                mainplace.innerHTML = "";
+                for (let index = 0; index < 24; index++) {
+                    
+                
+                
+                let card =  document.createElement("div");
+
+                
+                let time = document.createElement("p");
+                let degree = document.createElement("p");   
+                let percentice = document.createElement("p");   
+                
+                
+                
+
+                time.textContent = `${weatherr.hourly.time[index].split("T")[1]}`;
+                degree.textContent = `${weatherr.hourly.temperature_2m[index]}°C`
+                percentice.textContent = `${weatherr.hourly.relative_humidity_2m[index]}%`
+                
+                
+                mainplace.appendChild(card);
+
+                card.appendChild(time);
+                card.appendChild(degree);
+                card.appendChild(percentice);
+
+                
+                }
+                
+
+            }
+            catch(error){
+                console.error(error);
+                
+            }
+                
+                
+                
+            }
+            
+        
+        
+        </script>
+    </body>
+    </html>
